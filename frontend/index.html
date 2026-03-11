@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ScreenBridge</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:ital,wght@0,400;0,500;1,400&display=swap"
+    rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #08080f;
+      --surface: #0f0f1a;
+      --surface2: #161625;
+      --border: rgba(255, 255, 255, 0.06);
+      --accent: #00ffb2;
+      --accent2: #7c5cfc;
+      --warn: #ff6b6b;
+      --text: #eeeef8;
+      --muted: #55556a;
+      --card-h: 72px;
+    }
+
+    *,
+    *::before,
+    *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Syne', sans-serif;
+      overflow: hidden;
+    }
+
+    /* ── animated bg ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 50% at 20% 0%, rgba(124, 92, 252, 0.07) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 40% at 80% 100%, rgba(0, 255, 178, 0.05) 0%, transparent 60%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+      background-size: 48px 48px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── layout ── */
+    #app {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      height: 100vh;
+      padding: 0 28px;
+    }
+
+    /* ── header ── */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 0 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo-icon {
+      width: 34px;
+      height: 34px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 9px;
+      display: grid;
+      place-items: center;
+      font-size: 16px;
+      box-shadow: 0 0 18px rgba(0, 255, 178, 0.25);
+      flex-shrink: 0;
+    }
+
+    .logo-name {
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+
+    .logo-name span {
+      color: var(--accent);
+    }
+
+    .status-pill {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      color: var(--muted);
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      padding: 5px 12px;
+      border-radius: 20px;
+      transition: all .3s;
+    }
+
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--muted);
+      transition: all .3s;
+    }
+
+    .status-pill.connected .status-dot {
+      background: var(--accent);
+      box-shadow: 0 0 8px var(--accent);
+      animation: pulse 2s infinite;
+    }
+
+    .status-pill.connected {
+      color: var(--accent);
+      border-color: rgba(0, 255, 178, 0.2);
+    }
+
+    .status-pill.error {
+      color: var(--warn);
+      border-color: rgba(255, 107, 107, 0.2);
+    }
+
+    .status-pill.error .status-dot {
+      background: var(--warn);
+      box-shadow: 0 0 8px var(--warn);
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: .4;
+      }
+    }
+
+    /* ── main stage ── */
+    main {
+      display: grid;
+      grid-template-columns: 1fr 80px 1fr;
+      gap: 0;
+      align-items: start;
+      padding: 24px 0;
+      overflow: hidden;
+    }
+
+    /* ── monitor panels ── */
+    .monitor-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      height: calc(100vh - 140px);
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .panel-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .monitor-icon {
+      font-size: 14px;
+    }
+
+    .panel-count {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      color: var(--muted);
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      padding: 2px 8px;
+      border-radius: 10px;
+    }
+
+    .window-list {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding-right: 4px;
+    }
+
+    .window-list::-webkit-scrollbar {
+      width: 3px;
+    }
+
+    .window-list::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .window-list::-webkit-scrollbar-thumb {
+      background: var(--surface2);
+      border-radius: 3px;
+    }
+
+    /* ── window card ── */
+    .win-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      cursor: grab;
+      transition: border-color .2s, background .2s, transform .15s, box-shadow .2s;
+      user-select: none;
+      min-height: var(--card-h);
+      animation: cardIn .3s ease both;
+    }
+
+    @keyframes cardIn {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .win-card:hover {
+      border-color: rgba(124, 92, 252, 0.4);
+      background: var(--surface2);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    .win-card.dragging {
+      opacity: 0.4;
+      cursor: grabbing;
+      transform: scale(0.97);
+    }
+
+    .win-card.drag-over {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px var(--accent), 0 0 20px rgba(0, 255, 178, 0.15);
+    }
+
+    .win-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .win-title {
+      font-size: 13px;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 4px;
+    }
+
+    .win-meta {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      color: var(--muted);
+    }
+
+    .win-actions {
+      display: flex;
+      gap: 5px;
+      flex-shrink: 0;
+    }
+
+    .btn-move {
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--surface2);
+      color: var(--muted);
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      font-size: 13px;
+      transition: all .2s;
+    }
+
+    .btn-move:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: rgba(0, 255, 178, 0.08);
+      transform: scale(1.1);
+    }
+
+    /* ── bridge / middle ── */
+    .bridge {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      height: calc(100vh - 140px);
+      position: relative;
+    }
+
+    .bridge-line {
+      position: absolute;
+      top: 10%;
+      bottom: 10%;
+      width: 1px;
+      background: linear-gradient(to bottom, transparent, var(--accent2), var(--accent), var(--accent2), transparent);
+      opacity: 0.3;
+    }
+
+    .bridge-arrows {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      z-index: 1;
+    }
+
+    .arrow-badge {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      background: var(--surface2);
+      display: grid;
+      place-items: center;
+      font-size: 14px;
+      color: var(--muted);
+      animation: float 3s ease-in-out infinite;
+    }
+
+    .arrow-badge:nth-child(2) {
+      animation-delay: .5s;
+    }
+
+    @keyframes float {
+
+      0%,
+      100% {
+        transform: translateY(0);
+      }
+
+      50% {
+        transform: translateY(-4px);
+      }
+    }
+
+    /* ── drop zones ── */
+    .drop-zone {
+      border: 2px dashed transparent;
+      border-radius: 14px;
+      transition: border-color .2s, background .2s;
+      padding: 4px;
+      flex: 1;
+    }
+
+    .drop-zone.active {
+      border-color: var(--accent);
+      background: rgba(0, 255, 178, 0.04);
+    }
+
+    /* ── empty state ── */
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      height: 120px;
+      color: var(--muted);
+      border: 1px dashed var(--border);
+      border-radius: 12px;
+      font-size: 12px;
+      font-family: 'DM Mono', monospace;
+    }
+
+    .empty-icon {
+      font-size: 24px;
+      opacity: .4;
+    }
+
+    /* ── toast ── */
+    #toast {
+      position: fixed;
+      bottom: 28px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 20px;
+      font-family: 'DM Mono', monospace;
+      font-size: 12px;
+      color: var(--text);
+      transition: transform .3s cubic-bezier(.34, 1.56, .64, 1), opacity .3s;
+      opacity: 0;
+      z-index: 999;
+      white-space: nowrap;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    }
+
+    #toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+
+    #toast.success {
+      border-color: rgba(0, 255, 178, 0.3);
+      color: var(--accent);
+    }
+
+    #toast.error {
+      border-color: rgba(255, 107, 107, 0.3);
+      color: var(--warn);
+    }
+
+    /* ── footer ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 12px 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .footer-hint {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .kbd {
+      display: inline-block;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1px 6px;
+      font-size: 10px;
+    }
+
+    .btn-refresh {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 6px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all .2s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-refresh:hover {
+      border-color: var(--accent2);
+      color: var(--text);
+    }
+  </style>
+</head>
+
+<body>
+  <div id="app">
+
+    <!-- HEADER -->
+    <header>
+      <div class="logo">
+        <div class="logo-icon">🌉</div>
+        <div class="logo-name">Screen<span>Bridge</span></div>
+      </div>
+      <div class="status-pill" id="statusPill">
+        <div class="status-dot"></div>
+        <span id="statusText">Bağlanıyor...</span>
+      </div>
+    </header>
+
+    <!-- MAIN -->
+    <main>
+
+      <!-- SOL MONİTÖR -->
+      <div class="monitor-panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <span class="monitor-icon">🖥️</span>
+            Sol Monitör
+          </div>
+          <div class="panel-count" id="leftCount">0</div>
+        </div>
+        <div class="drop-zone" id="dropLeft" ondragover="onDragOver(event,'left')" ondragleave="onDragLeave('left')"
+          ondrop="onDrop(event,'left')">
+          <div class="window-list" id="leftList"></div>
+        </div>
+      </div>
+
+      <!-- BRIDGE MIDDLE -->
+      <div class="bridge">
+        <div class="bridge-line"></div>
+        <div class="bridge-arrows">
+          <div class="arrow-badge">←</div>
+          <div class="arrow-badge">→</div>
+        </div>
+      </div>
+
+      <!-- SAĞ MONİTÖR -->
+      <div class="monitor-panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <span class="monitor-icon">🖥️</span>
+            Sağ Monitör
+          </div>
+          <div class="panel-count" id="rightCount">0</div>
+        </div>
+        <div class="drop-zone" id="dropRight" ondragover="onDragOver(event,'right')" ondragleave="onDragLeave('right')"
+          ondrop="onDrop(event,'right')">
+          <div class="window-list" id="rightList"></div>
+        </div>
+      </div>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer>
+      <div class="footer-hint">
+        <span>Sürükle &amp; bırak ile taşı</span>
+        <span>veya</span>
+        <span><span class="kbd">←</span> <span class="kbd">→</span> butonlarına bas</span>
+      </div>
+      <button class="btn-refresh" onclick="requestRefresh()">⟳ Yenile</button>
+    </footer>
+
+  </div>
+
+  <!-- TOAST -->
+  <div id="toast"></div>
+
+  <script>
+    let ws = null;
+    let draggedTitle = null;
+    let windows = [];
+
+    // ── WebSocket ──────────────────────────────────────────────
+    function connect() {
+      ws = new WebSocket('ws://localhost:8000/ws');
+
+      ws.onopen = () => {
+        setStatus('connected', '● Bağlı');
+      };
+
+      ws.onclose = () => {
+        setStatus('error', '✕ Bağlantı kesildi');
+        setTimeout(connect, 3000); // 3 saniyede tekrar dene
+      };
+
+      ws.onerror = () => {
+        setStatus('error', '✕ Sunucu bulunamadı');
+      };
+
+      ws.onmessage = (e) => {
+        const msg = JSON.parse(e.data);
+        if (msg.type === 'windows') {
+          windows = msg.data;
+          renderWindows(windows);
+        } else if (msg.type === 'result') {
+          if (msg.data.success) {
+            showToast('✓ ' + msg.data.message, 'success');
+          } else {
+            showToast('✕ ' + msg.data.error, 'error');
+          }
+        }
+      };
+    }
+
+    function send(obj) {
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify(obj));
+      }
+    }
+
+    function requestRefresh() {
+      send({ action: 'refresh' });
+      // Fallback: REST
+      fetch('/api/windows')
+        .then(r => r.json())
+        .then(d => { windows = d.windows; renderWindows(windows); })
+        .catch(() => { });
+    }
+
+    // ── Render ─────────────────────────────────────────────────
+    function renderWindows(list) {
+      const left = list.filter(w => w.monitor === 'left');
+      const right = list.filter(w => w.monitor === 'right');
+
+      document.getElementById('leftCount').textContent = left.length;
+      document.getElementById('rightCount').textContent = right.length;
+
+      renderList('leftList', left, 'left');
+      renderList('rightList', right, 'right');
+    }
+
+    function renderList(containerId, items, side) {
+      const container = document.getElementById(containerId);
+      container.innerHTML = '';
+
+      if (items.length === 0) {
+        container.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">🖥️</div>
+        <div>Pencere yok</div>
+      </div>`;
+        return;
+      }
+
+      items.forEach((w, i) => {
+        const card = document.createElement('div');
+        card.className = 'win-card';
+        card.draggable = true;
+        card.style.animationDelay = (i * 0.04) + 's';
+        card.dataset.title = w.title;
+
+        const targetSide = side === 'left' ? 'right' : 'left';
+        const arrow = side === 'left' ? '→' : '←';
+        const action = side === 'left' ? 'move_right' : 'move_left';
+
+        card.innerHTML = `
+      <div class="win-info">
+        <div class="win-title" title="${escHtml(w.title)}">${escHtml(w.title)}</div>
+        <div class="win-meta">${w.width}×${w.height} &nbsp;·&nbsp; x:${w.left}</div>
+      </div>
+      <div class="win-actions">
+        <button class="btn-move" title="${targetSide === 'left' ? 'Sol' : 'Sağ'} monitöre taşı"
+          onclick="moveWindow('${escHtml(w.title)}','${action}')">${arrow}</button>
+      </div>`;
+
+        // Drag events
+        card.addEventListener('dragstart', (e) => {
+          draggedTitle = w.title;
+          card.classList.add('dragging');
+          e.dataTransfer.effectAllowed = 'move';
+          e.dataTransfer.setData('text/plain', w.title);
+        });
+        card.addEventListener('dragend', () => card.classList.remove('dragging'));
+
+        container.appendChild(card);
+      });
+    }
+
+    // ── Move ───────────────────────────────────────────────────
+    function moveWindow(title, action) {
+      send({ action, title });
+    }
+
+    // ── Drag & Drop ────────────────────────────────────────────
+    function onDragOver(e, side) {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      document.getElementById('drop' + cap(side)).classList.add('active');
+    }
+
+    function onDragLeave(side) {
+      document.getElementById('drop' + cap(side)).classList.remove('active');
+    }
+
+    function onDrop(e, side) {
+      e.preventDefault();
+      document.getElementById('drop' + cap(side)).classList.remove('active');
+
+      const title = draggedTitle || e.dataTransfer.getData('text/plain');
+      if (!title) return;
+
+      const win = windows.find(w => w.title === title);
+      if (!win) return;
+
+      // Zaten o monitördeyse işlem yapma
+      if (win.monitor === side) return;
+
+      const action = side === 'left' ? 'move_left' : 'move_right';
+      send({ action, title });
+      draggedTitle = null;
+    }
+
+    // ── UI Helpers ─────────────────────────────────────────────
+    function setStatus(cls, text) {
+      const pill = document.getElementById('statusPill');
+      pill.className = 'status-pill ' + cls;
+      document.getElementById('statusText').textContent = text;
+    }
+
+    function showToast(msg, type = '') {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.className = 'show ' + type;
+      clearTimeout(t._timer);
+      t._timer = setTimeout(() => { t.className = type; }, 3000);
+    }
+
+    function escHtml(str) {
+      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+    // ── Init ───────────────────────────────────────────────────
+    connect();
+  </script>
+</body>
+
+</html>
