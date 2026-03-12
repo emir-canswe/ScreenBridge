@@ -19,7 +19,6 @@
       --warn: #ff6b6b;
       --text: #eeeef8;
       --muted: #55556a;
-      --card-h: 72px;
     }
 
     *,
@@ -39,13 +38,11 @@
       overflow: hidden;
     }
 
-    /* ── animated bg ── */
     body::before {
       content: '';
       position: fixed;
       inset: 0;
-      background:
-        radial-gradient(ellipse 80% 50% at 20% 0%, rgba(124, 92, 252, 0.07) 0%, transparent 60%),
+      background: radial-gradient(ellipse 80% 50% at 20% 0%, rgba(124, 92, 252, 0.07) 0%, transparent 60%),
         radial-gradient(ellipse 60% 40% at 80% 100%, rgba(0, 255, 178, 0.05) 0%, transparent 60%);
       pointer-events: none;
       z-index: 0;
@@ -55,15 +52,12 @@
       content: '';
       position: fixed;
       inset: 0;
-      background-image:
-        linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+      background-image: linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
       background-size: 48px 48px;
       pointer-events: none;
       z-index: 0;
     }
 
-    /* ── layout ── */
     #app {
       position: relative;
       z-index: 1;
@@ -73,7 +67,6 @@
       padding: 0 28px;
     }
 
-    /* ── header ── */
     header {
       display: flex;
       align-items: center;
@@ -97,7 +90,6 @@
       place-items: center;
       font-size: 16px;
       box-shadow: 0 0 18px rgba(0, 255, 178, 0.25);
-      flex-shrink: 0;
     }
 
     .logo-name {
@@ -108,6 +100,12 @@
 
     .logo-name span {
       color: var(--accent);
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
 
     .status-pill {
@@ -150,22 +148,20 @@
 
     .status-pill.error .status-dot {
       background: var(--warn);
-      box-shadow: 0 0 8px var(--warn);
     }
 
     @keyframes pulse {
 
       0%,
       100% {
-        opacity: 1;
+        opacity: 1
       }
 
       50% {
-        opacity: .4;
+        opacity: .4
       }
     }
 
-    /* ── main stage ── */
     main {
       display: grid;
       grid-template-columns: 1fr 80px 1fr;
@@ -175,7 +171,6 @@
       overflow: hidden;
     }
 
-    /* ── monitor panels ── */
     .monitor-panel {
       display: flex;
       flex-direction: column;
@@ -203,10 +198,6 @@
       color: var(--muted);
     }
 
-    .monitor-icon {
-      font-size: 14px;
-    }
-
     .panel-count {
       font-family: 'DM Mono', monospace;
       font-size: 11px;
@@ -230,16 +221,11 @@
       width: 3px;
     }
 
-    .window-list::-webkit-scrollbar-track {
-      background: transparent;
-    }
-
     .window-list::-webkit-scrollbar-thumb {
       background: var(--surface2);
       border-radius: 3px;
     }
 
-    /* ── window card ── */
     .win-card {
       background: var(--surface);
       border: 1px solid var(--border);
@@ -250,21 +236,21 @@
       justify-content: space-between;
       gap: 10px;
       cursor: grab;
-      transition: border-color .2s, background .2s, transform .15s, box-shadow .2s;
+      transition: all .2s;
       user-select: none;
-      min-height: var(--card-h);
+      min-height: 72px;
       animation: cardIn .3s ease both;
     }
 
     @keyframes cardIn {
       from {
         opacity: 0;
-        transform: translateY(8px);
+        transform: translateY(8px)
       }
 
       to {
         opacity: 1;
-        transform: translateY(0);
+        transform: translateY(0)
       }
     }
 
@@ -275,15 +261,15 @@
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
     }
 
+    .win-card.selected {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px var(--accent), 0 0 20px rgba(0, 255, 178, 0.15);
+    }
+
     .win-card.dragging {
       opacity: 0.4;
       cursor: grabbing;
       transform: scale(0.97);
-    }
-
-    .win-card.drag-over {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 1px var(--accent), 0 0 20px rgba(0, 255, 178, 0.15);
     }
 
     .win-info {
@@ -333,7 +319,33 @@
       transform: scale(1.1);
     }
 
-    /* ── bridge / middle ── */
+    .btn-cam {
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--surface2);
+      color: var(--muted);
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      font-size: 13px;
+      transition: all .2s;
+    }
+
+    .btn-cam:hover {
+      border-color: var(--accent2);
+      color: var(--accent2);
+      background: rgba(124, 92, 252, 0.08);
+    }
+
+    .btn-cam.aktif {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: rgba(0, 255, 178, 0.1);
+      animation: pulse 1.5s infinite;
+    }
+
     .bridge {
       display: flex;
       flex-direction: column;
@@ -382,19 +394,18 @@
 
       0%,
       100% {
-        transform: translateY(0);
+        transform: translateY(0)
       }
 
       50% {
-        transform: translateY(-4px);
+        transform: translateY(-4px)
       }
     }
 
-    /* ── drop zones ── */
     .drop-zone {
       border: 2px dashed transparent;
       border-radius: 14px;
-      transition: border-color .2s, background .2s;
+      transition: all .2s;
       padding: 4px;
       flex: 1;
     }
@@ -404,7 +415,6 @@
       background: rgba(0, 255, 178, 0.04);
     }
 
-    /* ── empty state ── */
     .empty-state {
       display: flex;
       flex-direction: column;
@@ -419,12 +429,133 @@
       font-family: 'DM Mono', monospace;
     }
 
-    .empty-icon {
-      font-size: 24px;
-      opacity: .4;
+    /* ── KAMERA MODAL ── */
+    #kameraModal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(8px);
+      align-items: center;
+      justify-content: center;
     }
 
-    /* ── toast ── */
+    #kameraModal.acik {
+      display: flex;
+    }
+
+    .modal-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 24px;
+      width: 700px;
+      max-width: 95vw;
+      position: relative;
+    }
+
+    .modal-box::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+      border-radius: 20px 20px 0 0;
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .modal-title {
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .modal-title span {
+      color: var(--accent);
+    }
+
+    .btn-kapat {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      display: grid;
+      place-items: center;
+      transition: all .2s;
+    }
+
+    .btn-kapat:hover {
+      border-color: var(--warn);
+      color: var(--warn);
+    }
+
+    .kamera-cerceve {
+      position: relative;
+      width: 100%;
+      border-radius: 12px;
+      overflow: hidden;
+      background: #000;
+      cursor: crosshair;
+    }
+
+    #kameraImg {
+      width: 100%;
+      display: block;
+      border-radius: 12px;
+    }
+
+    .kamera-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.6);
+      border-radius: 12px;
+      font-family: 'DM Mono', monospace;
+      font-size: 13px;
+      color: var(--accent);
+      text-align: center;
+      padding: 20px;
+    }
+
+    .kamera-durum {
+      margin-top: 12px;
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      color: var(--muted);
+      text-align: center;
+      min-height: 20px;
+    }
+
+    .kamera-ipucu {
+      margin-top: 8px;
+      background: rgba(0, 255, 178, 0.05);
+      border: 1px solid rgba(0, 255, 178, 0.15);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .kamera-ipucu b {
+      color: var(--accent);
+    }
+
     #toast {
       position: fixed;
       bottom: 28px;
@@ -459,7 +590,11 @@
       color: var(--warn);
     }
 
-    /* ── footer ── */
+    #toast.info {
+      border-color: rgba(124, 92, 252, 0.3);
+      color: var(--accent2);
+    }
+
     footer {
       border-top: 1px solid var(--border);
       padding: 12px 0;
@@ -510,29 +645,23 @@
 
 <body>
   <div id="app">
-
-    <!-- HEADER -->
     <header>
       <div class="logo">
         <div class="logo-icon">🌉</div>
         <div class="logo-name">Screen<span>Bridge</span></div>
       </div>
-      <div class="status-pill" id="statusPill">
-        <div class="status-dot"></div>
-        <span id="statusText">Bağlanıyor...</span>
+      <div class="header-right">
+        <div class="status-pill" id="statusPill">
+          <div class="status-dot"></div>
+          <span id="statusText">Bağlanıyor...</span>
+        </div>
       </div>
     </header>
 
-    <!-- MAIN -->
     <main>
-
-      <!-- SOL MONİTÖR -->
       <div class="monitor-panel">
         <div class="panel-header">
-          <div class="panel-title">
-            <span class="monitor-icon">🖥️</span>
-            Sol Monitör
-          </div>
+          <div class="panel-title"><span>🖥️</span> Sol Monitör</div>
           <div class="panel-count" id="leftCount">0</div>
         </div>
         <div class="drop-zone" id="dropLeft" ondragover="onDragOver(event,'left')" ondragleave="onDragLeave('left')"
@@ -541,7 +670,6 @@
         </div>
       </div>
 
-      <!-- BRIDGE MIDDLE -->
       <div class="bridge">
         <div class="bridge-line"></div>
         <div class="bridge-arrows">
@@ -550,13 +678,9 @@
         </div>
       </div>
 
-      <!-- SAĞ MONİTÖR -->
       <div class="monitor-panel">
         <div class="panel-header">
-          <div class="panel-title">
-            <span class="monitor-icon">🖥️</span>
-            Sağ Monitör
-          </div>
+          <div class="panel-title"><span>🖥️</span> Sağ Monitör</div>
           <div class="panel-count" id="rightCount">0</div>
         </div>
         <div class="drop-zone" id="dropRight" ondragover="onDragOver(event,'right')" ondragleave="onDragLeave('right')"
@@ -564,84 +688,92 @@
           <div class="window-list" id="rightList"></div>
         </div>
       </div>
-
     </main>
 
-    <!-- FOOTER -->
     <footer>
       <div class="footer-hint">
         <span>Sürükle &amp; bırak ile taşı</span>
         <span>veya</span>
         <span><span class="kbd">←</span> <span class="kbd">→</span> butonlarına bas</span>
+        <span>veya</span>
+        <span>📷 kamera ikonu ile nesne takibi</span>
       </div>
       <button class="btn-refresh" onclick="requestRefresh()">⟳ Yenile</button>
     </footer>
-
   </div>
 
-  <!-- TOAST -->
+  <!-- KAMERA MODAL -->
+  <div id="kameraModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <div class="modal-title">📷 Nesne <span>Takibi</span></div>
+        <button class="btn-kapat" onclick="kameraKapat()">✕</button>
+      </div>
+
+      <div class="kamera-cerceve" id="kameraCerceve">
+        <img id="kameraImg" src="" alt="Kamera" />
+        <div class="kamera-overlay" id="kameraOverlay">
+          📷 Kamera başlatılıyor...
+        </div>
+      </div>
+
+      <div class="kamera-durum" id="kameraDurum">—</div>
+
+      <div class="kamera-ipucu">
+        <b>Nasıl kullanılır?</b><br>
+        1. Kamera görüntüsünde takip etmek istediğin nesneye (kalem, kart vs.) <b>tıkla</b><br>
+        2. Nesneyi <b>sola</b> götür → pencere sol monitöre taşınır<br>
+        3. Nesneyi <b>sağa</b> götür → pencere sağ monitöre taşınır
+      </div>
+    </div>
+  </div>
+
   <div id="toast"></div>
 
   <script>
     let ws = null;
     let draggedTitle = null;
     let windows = [];
+    let secilenPencere = null;
+    let kameraAktif = false;
+    let frameInterval = null;
+    let durumInterval = null;
 
     // ── WebSocket ──────────────────────────────────────────────
     function connect() {
       ws = new WebSocket('ws://localhost:8000/ws');
-
-      ws.onopen = () => {
-        setStatus('connected', '● Bağlı');
-      };
-
-      ws.onclose = () => {
-        setStatus('error', '✕ Bağlantı kesildi');
-        setTimeout(connect, 3000); // 3 saniyede tekrar dene
-      };
-
-      ws.onerror = () => {
-        setStatus('error', '✕ Sunucu bulunamadı');
-      };
-
+      ws.onopen = () => setStatus('connected', '● Bağlı');
+      ws.onclose = () => { setStatus('error', '✕ Bağlantı kesildi'); setTimeout(connect, 3000); };
+      ws.onerror = () => setStatus('error', '✕ Sunucu bulunamadı');
       ws.onmessage = (e) => {
         const msg = JSON.parse(e.data);
-        if (msg.type === 'windows') {
-          windows = msg.data;
-          renderWindows(windows);
-        } else if (msg.type === 'result') {
-          if (msg.data.success) {
-            showToast('✓ ' + msg.data.message, 'success');
-          } else {
-            showToast('✕ ' + msg.data.error, 'error');
-          }
+        if (msg.type === 'windows') { windows = msg.data; renderWindows(windows); }
+        else if (msg.type === 'result') {
+          if (msg.data.success) showToast('✓ ' + msg.data.message, 'success');
+          else showToast('✕ ' + msg.data.error, 'error');
+        }
+        else if (msg.type === 'camera_move') {
+          showToast('📷 ' + (msg.result.message || msg.result.error), msg.result.success ? 'success' : 'error');
+          if (msg.windows) { windows = msg.windows; renderWindows(windows); }
         }
       };
     }
 
     function send(obj) {
-      if (ws && ws.readyState === WebSocket.OPEN) {
-        ws.send(JSON.stringify(obj));
-      }
+      if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify(obj));
     }
 
     function requestRefresh() {
       send({ action: 'refresh' });
-      // Fallback: REST
-      fetch('/api/windows')
-        .then(r => r.json())
-        .then(d => { windows = d.windows; renderWindows(windows); })
-        .catch(() => { });
+      fetch('/api/windows').then(r => r.json()).then(d => { windows = d.windows; renderWindows(windows); }).catch(() => { });
     }
 
     // ── Render ─────────────────────────────────────────────────
     function renderWindows(list) {
       const left = list.filter(w => w.monitor === 'left');
       const right = list.filter(w => w.monitor === 'right');
-
       document.getElementById('leftCount').textContent = left.length;
       document.getElementById('rightCount').textContent = right.length;
-
       renderList('leftList', left, 'left');
       renderList('rightList', right, 'right');
     }
@@ -649,38 +781,29 @@
     function renderList(containerId, items, side) {
       const container = document.getElementById(containerId);
       container.innerHTML = '';
-
       if (items.length === 0) {
-        container.innerHTML = `
-      <div class="empty-state">
-        <div class="empty-icon">🖥️</div>
-        <div>Pencere yok</div>
-      </div>`;
+        container.innerHTML = `<div class="empty-state"><div style="font-size:24px;opacity:.4">🖥️</div><div>Pencere yok</div></div>`;
         return;
       }
-
       items.forEach((w, i) => {
         const card = document.createElement('div');
-        card.className = 'win-card';
+        card.className = 'win-card' + (secilenPencere === w.title ? ' selected' : '');
         card.draggable = true;
         card.style.animationDelay = (i * 0.04) + 's';
         card.dataset.title = w.title;
-
-        const targetSide = side === 'left' ? 'right' : 'left';
         const arrow = side === 'left' ? '→' : '←';
         const action = side === 'left' ? 'move_right' : 'move_left';
-
         card.innerHTML = `
       <div class="win-info">
         <div class="win-title" title="${escHtml(w.title)}">${escHtml(w.title)}</div>
-        <div class="win-meta">${w.width}×${w.height} &nbsp;·&nbsp; x:${w.left}</div>
+        <div class="win-meta">${w.width}×${w.height} · x:${w.left}</div>
       </div>
       <div class="win-actions">
-        <button class="btn-move" title="${targetSide === 'left' ? 'Sol' : 'Sağ'} monitöre taşı"
+        <button class="btn-cam ${secilenPencere === w.title && kameraAktif ? 'aktif' : ''}" title="Kamera ile taşı"
+          onclick="kameraAc('${escHtml(w.title)}')">📷</button>
+        <button class="btn-move" title="Taşı"
           onclick="moveWindow('${escHtml(w.title)}','${action}')">${arrow}</button>
       </div>`;
-
-        // Drag events
         card.addEventListener('dragstart', (e) => {
           draggedTitle = w.title;
           card.classList.add('dragging');
@@ -688,52 +811,106 @@
           e.dataTransfer.setData('text/plain', w.title);
         });
         card.addEventListener('dragend', () => card.classList.remove('dragging'));
-
         container.appendChild(card);
       });
     }
 
-    // ── Move ───────────────────────────────────────────────────
-    function moveWindow(title, action) {
-      send({ action, title });
-    }
+    function moveWindow(title, action) { send({ action, title }); }
 
     // ── Drag & Drop ────────────────────────────────────────────
-    function onDragOver(e, side) {
-      e.preventDefault();
-      e.dataTransfer.dropEffect = 'move';
-      document.getElementById('drop' + cap(side)).classList.add('active');
-    }
-
-    function onDragLeave(side) {
-      document.getElementById('drop' + cap(side)).classList.remove('active');
-    }
-
+    function onDragOver(e, side) { e.preventDefault(); document.getElementById('drop' + cap(side)).classList.add('active'); }
+    function onDragLeave(side) { document.getElementById('drop' + cap(side)).classList.remove('active'); }
     function onDrop(e, side) {
       e.preventDefault();
       document.getElementById('drop' + cap(side)).classList.remove('active');
-
       const title = draggedTitle || e.dataTransfer.getData('text/plain');
       if (!title) return;
-
       const win = windows.find(w => w.title === title);
-      if (!win) return;
-
-      // Zaten o monitördeyse işlem yapma
-      if (win.monitor === side) return;
-
-      const action = side === 'left' ? 'move_left' : 'move_right';
-      send({ action, title });
+      if (!win || win.monitor === side) return;
+      send({ action: side === 'left' ? 'move_left' : 'move_right', title });
       draggedTitle = null;
     }
 
-    // ── UI Helpers ─────────────────────────────────────────────
+    // ── KAMERA ─────────────────────────────────────────────────
+    function kameraAc(title) {
+      secilenPencere = title;
+      document.getElementById('kameraModal').classList.add('acik');
+      document.getElementById('kameraOverlay').style.display = 'flex';
+      document.getElementById('kameraOverlay').textContent = '📷 Kamera başlatılıyor...';
+
+      fetch('/api/camera/start', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title })
+      })
+        .then(r => r.json())
+        .then(d => {
+          if (d.success) {
+            kameraAktif = true;
+            showToast('📷 Kamera başladı — nesneye tıklayın!', 'info');
+            // Frame çekmeye başla
+            setTimeout(() => {
+              document.getElementById('kameraOverlay').style.display = 'none';
+              frameInterval = setInterval(frameGuncelle, 100);
+              durumInterval = setInterval(durumGuncelle, 500);
+            }, 1000);
+            renderWindows(windows); // kamera butonunu güncelle
+          } else {
+            showToast('✕ ' + d.error, 'error');
+          }
+        });
+    }
+
+    function kameraKapat() {
+      document.getElementById('kameraModal').classList.remove('acik');
+      clearInterval(frameInterval);
+      clearInterval(durumInterval);
+      kameraAktif = false;
+      fetch('/api/camera/stop', { method: 'POST' });
+      renderWindows(windows);
+    }
+
+    function frameGuncelle() {
+      const img = document.getElementById('kameraImg');
+      img.src = '/api/camera/frame?t=' + Date.now();
+    }
+
+    function durumGuncelle() {
+      fetch('/api/camera/status')
+        .then(r => r.json())
+        .then(d => {
+          document.getElementById('kameraDurum').textContent = d.durum || '—';
+        })
+        .catch(() => { });
+    }
+
+    // Kamera görüntüsüne tıklanınca renk seç
+    document.getElementById('kameraCerceve').addEventListener('click', function (e) {
+      if (!kameraAktif) return;
+      const rect = this.getBoundingClientRect();
+      const img = document.getElementById('kameraImg');
+      const scaleX = 640 / img.clientWidth;
+      const scaleY = 480 / img.clientHeight;
+      const x = Math.round((e.clientX - rect.left) * scaleX);
+      const y = Math.round((e.clientY - rect.top) * scaleY);
+
+      fetch('/api/camera/select-color', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ x, y })
+      })
+        .then(r => r.json())
+        .then(d => {
+          if (d.success) showToast('🎯 Renk seçildi! Nesneyi hareket ettirin.', 'success');
+        });
+    });
+
+    // ── Helpers ────────────────────────────────────────────────
     function setStatus(cls, text) {
       const pill = document.getElementById('statusPill');
       pill.className = 'status-pill ' + cls;
       document.getElementById('statusText').textContent = text;
     }
-
     function showToast(msg, type = '') {
       const t = document.getElementById('toast');
       t.textContent = msg;
@@ -741,14 +918,11 @@
       clearTimeout(t._timer);
       t._timer = setTimeout(() => { t.className = type; }, 3000);
     }
-
     function escHtml(str) {
       return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     }
-
     function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
 
-    // ── Init ───────────────────────────────────────────────────
     connect();
   </script>
 </body>
