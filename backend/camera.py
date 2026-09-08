@@ -38,6 +38,7 @@ class KalemTakipci:
         # Durum mesajı
         self.durum = "Kameraya tıklayarak nesneyi seçin"
         self.tiklama_bekleniyor = True
+        self.secili_pencere = None
 
         # Canvas boyutu
         self.W = 640
@@ -97,7 +98,11 @@ class KalemTakipci:
         self.pozisyonlar.clear()
 
     def _dongu(self):
-        self.cap = cv2.VideoCapture(0)
+        # Windows'ta DirectShow ile hızlı kamera açılışı
+        self.cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+        if not self.cap.isOpened():
+            self.cap = cv2.VideoCapture(0)
+
         if not self.cap.isOpened():
             self.durum = "Kamera açılamadı (Webcam bulunamadı veya başka uygulama kullanıyor)"
             self.calisiyor = False

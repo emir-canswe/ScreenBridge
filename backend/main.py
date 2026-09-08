@@ -12,6 +12,17 @@ import os
 import sys
 import time
 
+# Windows DPI farkındalığını etkinleştir (ölçekleme %125, %150 vb. olduğunda koordinatların kaymasını önler)
+try:
+    import ctypes
+    ctypes.windll.shcore.SetProcessDpiAwareness(2)
+except Exception:
+    try:
+        import ctypes
+        ctypes.windll.user32.SetProcessDPIAware()
+    except Exception:
+        pass
+
 # Proje dizinini sys.path'e ekle (doğrudan veya kök dizinden çalıştırmada import hatasını önler)
 BASE_DIR     = os.path.dirname(os.path.abspath(__file__))
 if BASE_DIR not in sys.path:
@@ -115,19 +126,23 @@ def get_all_windows():
     try:
         monitors, right_x = get_monitor_boundary()
         for w in gw.getAllWindows():
-            if not w.title or w.title.strip() in IGNORED_TITLES:
+            try:
+                if not w.title or w.title.strip() in IGNORED_TITLES:
+                    continue
+                if w.width <= 0 or w.height <= 0:
+                    continue
+                center_x = w.left + (w.width // 2)
+                monitor = "right" if center_x >= right_x else "left"
+                windows.append({
+                    "title": w.title,
+                    "left": w.left,
+                    "top": w.top,
+                    "width": w.width,
+                    "height": w.height,
+                    "monitor": monitor
+                })
+            except Exception:
                 continue
-            if w.width <= 0 or w.height <= 0:
-                continue
-            monitor = "right" if w.left >= right_x else "left"
-            windows.append({
-                "title": w.title,
-                "left": w.left,
-                "top": w.top,
-                "width": w.width,
-                "height": w.height,
-                "monitor": monitor
-            })
     except Exception as e:
         print(f"Hata: {e}")
     return windows
@@ -319,28 +334,42 @@ async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
     aktif_ws.add(websocket)
     update_task = None
+    ws_lock = asyncio.Lock()
+
+    async def safe_send(data: dict):
+        async with ws_lock:
+            try:
+                await websocket.send_text(json.dumps(data))
+            except Exception:
+                pass
+
     try:
-        await websocket.send_text(json.dumps({"type": "windows", "data": get_all_windows()}))
+        await safe_send({"type": "windows", "data": get_all_windows()})
 
         async def send_updates():
             while True:
                 await asyncio.sleep(2)
-                await websocket.send_text(json.dumps({"type": "windows", "data": get_all_windows()}))
+                await safe_send({"type": "windows", "data": get_all_windows()})
 
         update_task = asyncio.create_task(send_updates())
 
         while True:
             raw = await websocket.receive_text()
-            msg = json.loads(raw)
+            try:
+                msg = json.loads(raw)
+            except Exception:
+                continue
+
             if msg.get("action") == "move_left":
                 result = move_window_to_left(msg.get("title", ""))
             elif msg.get("action") == "move_right":
                 result = move_window_to_right(msg.get("title", ""))
             else:
                 result = {"success": True, "message": "ok"}
-            await websocket.send_text(json.dumps({"type": "result", "data": result}))
+
+            await safe_send({"type": "result", "data": result})
             await asyncio.sleep(0.3)
-            await websocket.send_text(json.dumps({"type": "windows", "data": get_all_windows()}))
+            await safe_send({"type": "windows", "data": get_all_windows()})
     except WebSocketDisconnect:
         pass
     except Exception as e:

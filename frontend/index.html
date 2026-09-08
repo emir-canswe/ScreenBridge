@@ -849,7 +849,11 @@
     }
 
     // ── KAMERA ─────────────────────────────────────────────────
+    let startTimeout = null;
+    let frameLoading = false;
+
     function kameraAc(title) {
+      kameraKapat(); // Önceki olası oturumu sıfırla
       secilenPencere = title;
       document.getElementById('kameraModal').classList.add('acik');
       document.getElementById('kameraOverlay').style.display = 'flex';
@@ -865,31 +869,50 @@
           if (d.success) {
             kameraAktif = true;
             showToast('📷 Kamera başladı — nesneye tıklayın!', 'info');
-            // Frame çekmeye başla
-            setTimeout(() => {
+            clearTimeout(startTimeout);
+            startTimeout = setTimeout(() => {
+              if (!kameraAktif) return;
               document.getElementById('kameraOverlay').style.display = 'none';
-              frameInterval = setInterval(frameGuncelle, 100);
+              frameInterval = setInterval(frameGuncelle, 80);
               durumInterval = setInterval(durumGuncelle, 500);
-            }, 1000);
+            }, 600);
             renderWindows(windows); // kamera butonunu güncelle
           } else {
+            kameraKapat();
             showToast('✕ ' + d.error, 'error');
           }
+        })
+        .catch(() => {
+          kameraKapat();
+          showToast('✕ Kamera başlatılamadı', 'error');
         });
     }
 
     function kameraKapat() {
-      document.getElementById('kameraModal').classList.remove('acik');
+      clearTimeout(startTimeout);
       clearInterval(frameInterval);
       clearInterval(durumInterval);
+      frameLoading = false;
       kameraAktif = false;
-      fetch('/api/camera/stop', { method: 'POST' });
+      document.getElementById('kameraModal').classList.remove('acik');
+      fetch('/api/camera/stop', { method: 'POST' }).catch(() => { });
       renderWindows(windows);
     }
 
     function frameGuncelle() {
+      if (frameLoading || !kameraAktif) return;
+      frameLoading = true;
       const img = document.getElementById('kameraImg');
-      img.src = '/api/camera/frame?t=' + Date.now();
+      const nextSrc = '/api/camera/frame?t=' + Date.now();
+      const temp = new Image();
+      temp.onload = () => {
+        if (kameraAktif) img.src = nextSrc;
+        frameLoading = false;
+      };
+      temp.onerror = () => {
+        frameLoading = false;
+      };
+      temp.src = nextSrc;
     }
 
     function durumGuncelle() {
@@ -900,6 +923,15 @@
         })
         .catch(() => { });
     }
+
+    // Modal dışına tıklayınca veya ESC basınca kapat
+    document.getElementById('kameraModal').addEventListener('click', function (e) {
+      if (e.target === this) kameraKapat();
+    });
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && kameraAktif) kameraKapat();
+    });
 
     // Kamera görüntüsüne tıklanınca renk seç
     document.getElementById('kameraCerceve').addEventListener('click', function (e) {
