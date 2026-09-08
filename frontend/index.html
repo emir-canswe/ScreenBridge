@@ -741,7 +741,9 @@
 
     // ── WebSocket ──────────────────────────────────────────────
     function connect() {
-      ws = new WebSocket('ws://localhost:8000/ws');
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const host = window.location.host || 'localhost:8000';
+      ws = new WebSocket(`${protocol}//${host}/ws`);
       ws.onopen = () => setStatus('connected', '● Bağlı');
       ws.onclose = () => { setStatus('error', '✕ Bağlantı kesildi'); setTimeout(connect, 3000); };
       ws.onerror = () => setStatus('error', '✕ Sunucu bulunamadı');
@@ -795,15 +797,30 @@
         const action = side === 'left' ? 'move_right' : 'move_left';
         card.innerHTML = `
       <div class="win-info">
-        <div class="win-title" title="${escHtml(w.title)}">${escHtml(w.title)}</div>
+        <div class="win-title"></div>
         <div class="win-meta">${w.width}×${w.height} · x:${w.left}</div>
       </div>
       <div class="win-actions">
-        <button class="btn-cam ${secilenPencere === w.title && kameraAktif ? 'aktif' : ''}" title="Kamera ile taşı"
-          onclick="kameraAc('${escHtml(w.title)}')">📷</button>
-        <button class="btn-move" title="Taşı"
-          onclick="moveWindow('${escHtml(w.title)}','${action}')">${arrow}</button>
+        <button class="btn-cam ${secilenPencere === w.title && kameraAktif ? 'aktif' : ''}" title="Kamera ile taşı">📷</button>
+        <button class="btn-move" title="Taşı">${arrow}</button>
       </div>`;
+
+        const titleEl = card.querySelector('.win-title');
+        titleEl.textContent = w.title;
+        titleEl.title = w.title;
+
+        const btnCam = card.querySelector('.btn-cam');
+        btnCam.addEventListener('click', (e) => {
+          e.stopPropagation();
+          kameraAc(w.title);
+        });
+
+        const btnMove = card.querySelector('.btn-move');
+        btnMove.addEventListener('click', (e) => {
+          e.stopPropagation();
+          moveWindow(w.title, action);
+        });
+
         card.addEventListener('dragstart', (e) => {
           draggedTitle = w.title;
           card.classList.add('dragging');
@@ -889,6 +906,7 @@
       if (!kameraAktif) return;
       const rect = this.getBoundingClientRect();
       const img = document.getElementById('kameraImg');
+      if (!img || !img.clientWidth || !img.clientHeight) return;
       const scaleX = 640 / img.clientWidth;
       const scaleY = 480 / img.clientHeight;
       const x = Math.round((e.clientX - rect.left) * scaleX);
@@ -902,6 +920,9 @@
         .then(r => r.json())
         .then(d => {
           if (d.success) showToast('🎯 Renk seçildi! Nesneyi hareket ettirin.', 'success');
+        })
+        .catch(() => {
+          showToast('✕ Renk seçimi başarısız oldu', 'error');
         });
     });
 

@@ -12,7 +12,7 @@ from collections import deque
 
 class KalemTakipci:
     def __init__(self):
-        self.calisıyor = False
+        self.calisiyor = False
         self.thread = None
         self.cap = None
 
@@ -43,18 +43,31 @@ class KalemTakipci:
         self.W = 640
         self.H = 480
 
+    @property
+    def calisıyor(self):
+        return self.calisiyor
+
+    @calisıyor.setter
+    def calisıyor(self, value):
+        self.calisiyor = value
+
     def baslat(self, on_hareket_fn):
         """Kamera döngüsünü başlat."""
         self.on_hareket = on_hareket_fn
-        self.calisıyor = True
+        self.calisiyor = True
         self.thread = threading.Thread(target=self._dongu, daemon=True)
         self.thread.start()
 
     def durdur(self):
-        self.calisıyor = False
-        time.sleep(0.3)
+        self.calisiyor = False
+        if self.thread and self.thread.is_alive():
+            self.thread.join(timeout=1.0)
         if self.cap:
-            self.cap.release()
+            try:
+                self.cap.release()
+            except Exception:
+                pass
+            self.cap = None
         cv2.destroyAllWindows()
 
     def renk_sec(self, x, y):
@@ -66,9 +79,14 @@ class KalemTakipci:
             return
 
         frame = cv2.flip(frame, 1)
+        h_img, w_img = frame.shape[:2]
+        # Koordinat sınırlarını koru (IndexError engelleme)
+        clamped_x = max(0, min(w_img - 1, int(x)))
+        clamped_y = max(0, min(h_img - 1, int(y)))
+
         # Tıklanan piksel HSV
         hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-        h, s, v = hsv[y, x]
+        h, s, v = hsv[clamped_y, clamped_x]
 
         # Toleranslı aralık
         self.hedef_lower = np.array([max(0, int(h) - 15), max(40, int(s) - 60), max(40, int(v) - 60)])
@@ -80,10 +98,15 @@ class KalemTakipci:
 
     def _dongu(self):
         self.cap = cv2.VideoCapture(0)
+        if not self.cap.isOpened():
+            self.durum = "Kamera açılamadı (Webcam bulunamadı veya başka uygulama kullanıyor)"
+            self.calisiyor = False
+            return
+
         self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, self.W)
         self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, self.H)
 
-        while self.calisıyor:
+        while self.calisiyor:
             ret, frame = self.cap.read()
             if not ret:
                 time.sleep(0.05)
@@ -135,7 +158,12 @@ class KalemTakipci:
             with self.frame_lock:
                 self.son_frame = buf.tobytes()
 
-        self.cap.release()
+        if self.cap:
+            try:
+                self.cap.release()
+            except Exception:
+                pass
+            self.cap = None
 
     def _hareket_kontrol(self, cx):
         """Son pozisyonlara bakarak sola/sağa hareketi algıla."""
